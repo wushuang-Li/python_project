@@ -11,15 +11,12 @@ TG_CHAT_ID = '1124778633'
 bot = Bot(token=TG_BOT_TOKEN)
 
 SOLANA_RPC_URL = 'https://api.mainnet-beta.solana.com'
-MONITORED_WALLETS = ['2gQSss8ur8wWtEo34AYMvwA1GQssYrEhL71J9d5YzTeb'#新的阴谋集团
-                     #'BhbnnZRnmdDM5mJ8HPHHVveZwNb2JtECHXiCkW1a1hcE'#自己钱包
-                     #'Hw9w3Rf4Q87u1VALwnyxYB6d42ryq7y383P5iWMpxsGX',#新阴谋集团地址
-                     #'DYeQjwV8LFkcgcrH4soXkmjZk62MwCZb6g7E5pfev2wj',#老阴谋集团
-                     #'9e5r3uhoFoUdVH1yVhAcGqQmzZee9F8QkaX2p9Wt828d',#老阴谋集团
-                     #'2wm6N1kL4feGpVHPaCaYb2FJfFoVAdAXuwptexaJuGUb',#老阴谋集团
-                     #'49qx9Tr4ZdaRHynutfHd6fgeDiPqiKh6rGnqHabC3ZHi'#老阴谋集团
-                     ]
-SOL_THRESHOLD = 2  # 设置交易阈值，超过此数值时获取交易信息
+
+# 针对不同钱包设定不同的阈值
+MONITORED_WALLETS = {
+    '2gQSss8ur8wWtEo34AYMvwA1GQssYrEhL71J9d5YzTeb': 2,  # 钱包1，阈值为 2 SOL
+    'BhbnnZRnmdDM5mJ8HPHHVveZwNb2JtECHXiCkW1a1hcE': 0.1   # 钱包2，阈值为 5 SOL
+}
 
 def get_latest_transaction(wallet_address):
     headers = {
@@ -49,7 +46,7 @@ def get_latest_transaction(wallet_address):
     return latest_signature
 
 
-def get_transaction_details(signature):
+def get_transaction_details(signature, wallet_address):
     headers = {
         'Content-Type': 'application/json'
     }
@@ -89,15 +86,17 @@ def get_transaction_details(signature):
     transaction_amount = None
     for idx, addr in enumerate(account_keys):
         if addr in MONITORED_WALLETS:
+            # 根据钱包地址获取其阈值
+            threshold = MONITORED_WALLETS[wallet_address]
             if pre_balances[idx] > post_balances[idx]:
                 transaction_amount = (pre_balances[idx] - post_balances[idx]) / 10 ** 9
-                if transaction_amount > SOL_THRESHOLD:
+                if transaction_amount > threshold:
                     sender = addr
                     receiver = account_keys[1] if account_keys[1] != addr else account_keys[0]
                     break
-            elif pre_balances[idx] < post_balances[idx]:  # 接收的情况
+            elif pre_balances[idx] < post_balances[idx]:
                 transaction_amount = (post_balances[idx] - pre_balances[idx]) / 10 ** 9
-                if transaction_amount > SOL_THRESHOLD:
+                if transaction_amount > threshold:
                     receiver = addr
                     sender = account_keys[1] if account_keys[1] != addr else account_keys[0]
                     break
@@ -126,6 +125,7 @@ async def send_tg_message(transaction_details):
 
     try:
         await bot.send_message(chat_id=TG_CHAT_ID, text=message)
+        await asyncio.sleep(0.5)  # 每次发送消息后等待 0.5 秒，避免并发过多
     except TelegramError as e:
         print(f"Error sending message to Telegram: {e}")
 
@@ -136,25 +136,25 @@ async def monitor_wallets():
     while True:
         for wallet_address in MONITORED_WALLETS:
             try:
-                print(f"Checking wallet: {wallet_address}")  # 输出调试信息，确保每次轮询时都检查每个钱包
+                print(f"Checking wallet: {wallet_address}")
                 latest_signature = get_latest_transaction(wallet_address)
 
                 if latest_signature and latest_signature != last_signatures[wallet_address]:
                     last_signatures[wallet_address] = latest_signature
-                    transaction_details = get_transaction_details(latest_signature)
+                    transaction_details = get_transaction_details(latest_signature, wallet_address)
 
                     if transaction_details:
-                        print(f"New transaction detected for {wallet_address}: {transaction_details}")  # 调试输出
+                        print(f"New transaction detected for {wallet_address}: {transaction_details}")
                         await send_tg_message(transaction_details)
                     else:
                         print(f"No qualifying transactions detected for {wallet_address}.")
                 else:
-                    print(f"No new transaction for {wallet_address}.")  # 输出没有新交易的提示
+                    print(f"No new transaction for {wallet_address}.")
 
             except Exception as e:
                 print(f"Error monitoring {wallet_address}: {e}")
 
-        await asyncio.sleep(10)  # 轮询时间设置为10秒
+        await asyncio.sleep(10)  # 轮询间隔时间为10秒
 
 
 if __name__ == "__main__":
