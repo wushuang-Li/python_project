@@ -12,10 +12,10 @@ bot = Bot(token=TG_BOT_TOKEN)
 
 SOLANA_RPC_URL = 'https://api.mainnet-beta.solana.com'
 
-# 针对不同钱包设定不同的阈值
+# 针对不同钱包设定不同的阈值提醒
 MONITORED_WALLETS = {
     '2gQSss8ur8wWtEo34AYMvwA1GQssYrEhL71J9d5YzTeb': 2,  # 钱包1，阈值为 2 SOL
-    'BhbnnZRnmdDM5mJ8HPHHVveZwNb2JtECHXiCkW1a1hcE': 0.1   # 钱包2，阈值为 5 SOL
+    'BhbnnZRnmdDM5mJ8HPHHVveZwNb2JtECHXiCkW1a1hcE': 0.1   # 钱包2，阈值为 0.1 SOL
 }
 
 def get_latest_transaction(wallet_address):
