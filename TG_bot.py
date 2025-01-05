@@ -7,7 +7,7 @@ from telegram.error import TelegramError
 
 # Telegram Bot and Chat Info
 TG_BOT_TOKEN = ''
-TG_CHAT_ID = '1124778633'
+TG_CHAT_ID = ''
 bot = Bot(token=TG_BOT_TOKEN)
 
 SOLANA_RPC_URL = 'https://api.mainnet-beta.solana.com'
