@@ -6,7 +6,7 @@ from telegram import Bot
 from telegram.error import TelegramError
 
 # Telegram Bot and Chat Info
-TG_BOT_TOKEN = '7488495204:AAHz7WCyiWvqCsWqbVt07GwwOzWH6VLSVyE'
+TG_BOT_TOKEN = ''
 TG_CHAT_ID = '1124778633'
 bot = Bot(token=TG_BOT_TOKEN)
 
