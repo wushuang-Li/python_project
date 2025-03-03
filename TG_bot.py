@@ -6,8 +6,8 @@ from telegram import Bot
 from telegram.error import TelegramError
 
 # Telegram Bot and Chat Info
-TG_BOT_TOKEN = ''
-TG_CHAT_ID = ''
+TG_BOT_TOKEN = ''  # 机器人token
+TG_CHAT_ID = ''  # TG_ID
 bot = Bot(token=TG_BOT_TOKEN)
 
 SOLANA_RPC_URL = 'https://api.mainnet-beta.solana.com'
